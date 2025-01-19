@@ -55,7 +55,7 @@ services:
     deploy:
       replicas: 3
     volumes:
-      - "F:/FileData:/app/data"
+      - "D:/Quang/FileTest:/app/data"
     environment:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
