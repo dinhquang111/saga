@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package background;
+option csharp_namespace = "Background.Model";
+
+message ListExamPaper {
+  repeated ExamPaper ExamPapers = 1;
+}
+
+message ExamPaper {
+  int32 UId = 1;
+  int32 TId = 2;
+  int32 TCId = 3;
+  repeated Question Questions = 4;
+}
+
+message Question {
+  int32 Id = 1;
+  string Content = 2;
+  repeated Answer Answers = 3;
+}
+
+message Answer {
+  int32 Id = 1;
+  string Content = 2;
+}

@@ -1,0 +1,71 @@
+﻿version: "3.2"
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq'
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+    networks:
+      - rabbitmq_go_net
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  foreground:
+    build:
+      context: ./Foreground
+      dockerfile: Dockerfile
+    image: foreground
+    container_name: foreground
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASSWORD=guest
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - rabbitmq_go_net
+
+  background:
+    build:
+      context: ./Background
+      dockerfile: Dockerfile
+    image: background
+    deploy:
+      replicas: 3
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - rabbitmq_go_net
+
+  file-server:
+    build:
+      context: ./FileServer
+      dockerfile: Dockerfile
+    image: file-server
+    deploy:
+      replicas: 3
+    volumes:
+      - "F:/FileData:/app/data"
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASSWORD=guest
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - rabbitmq_go_net
+networks:
+  rabbitmq_go_net:
+    driver: bridge
